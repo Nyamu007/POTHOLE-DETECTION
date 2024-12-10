@@ -1,0 +1,12 @@
+{
+  "name": "pothole-detection-system",
+  "private": true,
+  "scripts": {
+    "start": "python app.py",
+    "dev": "python app.py",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "ultralytics": "^0.1.0"
+  }
+}

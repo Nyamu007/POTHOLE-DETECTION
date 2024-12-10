@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload - Pothole Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700,800,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000;
+        }
+        .custom-button {
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            background-color: #8B4513;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .custom-button:hover {
+            background-color: #A0522D;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .spothole-title {
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .result-container {
+            background: rgba(139, 69, 19, 0.1);
+            border: 1px solid #8B4513;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            margin: 1rem auto;
+            border-radius: 0.5rem;
+            border: 2px solid #8B4513;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex">
+        <!-- Left Sidebar -->
+        <div class="w-80 bg-gray-900 text-red-500">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-8 text-red-500">Upload Controls</h2>
+                
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">Upload Status</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg">Status: <span id="uploadStatus" class="font-mono text-red-500">Ready</span></p>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">File Information</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg mb-2">Name: <span id="fileName" class="font-mono text-red-500">No file selected</span></p>
+                        <p class="text-lg">Size: <span id="fileSize" class="font-mono text-red-500">-</span></p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <button id="selectFile" class="custom-button w-full">Select File</button>
+                    <button id="startUpload" class="custom-button w-full opacity-50 cursor-not-allowed" disabled>Start Upload</button>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">Detection Results</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg mb-2">Objects: <span id="detectionCount" class="font-mono text-red-500">0</span></p>
+                        <p class="text-lg">Confidence: <span id="avgConfidence" class="font-mono text-red-500">-</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 bg-black">
+            <nav class="bg-black border-b border-red-800 text-red-500 p-6">
+                <div class="container mx-auto flex justify-between items-center">
+                    <div class="flex items-center">
+                        <h1 class="text-4xl spothole-title">SPOTHOLE</h1>
+                        <p class="text-sm ml-4 text-red-400">Detection System</p>
+                    </div>
+                    <div class="space-x-4">
+                        <a href="/" class="custom-button">Live Feed</a>
+                        <a href="/upload" class="custom-button">Upload</a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container mx-auto p-6">
+                <div class="grid grid-cols-1 gap-6">
+                    <!-- Upload Section -->
+                    <div class="bg-gray-900 rounded-xl shadow-2xl p-6 border border-red-800">
+                        <h2 class="text-2xl font-bold mb-6 text-red-500">File Upload</h2>
+                        <form id="uploadForm" class="space-y-6">
+                            <div class="border-2 border-dashed border-red-800 rounded-xl p-8 text-center hover:border-red-600 transition-colors bg-gray-800">
+                                <input type="file" id="file-upload" name="file" class="hidden" accept=".png,.jpg,.jpeg,.mp4">
+                                <div class="space-y-4">
+                                    <div class="flex justify-center">
+                                        <svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                        </svg>
+                                    </div>
+                                    <div class="text-red-400">
+                                        <p class="text-lg font-medium">Drag and drop your file here</p>
+                                        <p class="text-sm">or click to browse</p>
+                                    </div>
+                                    <p class="text-xs text-red-300">Supported formats: PNG, JPG, JPEG, MP4 (max 16MB)</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div id="previewSection" class="bg-gray-900 rounded-xl shadow-2xl p-6 border border-red-800 hidden">
+                        <h2 class="text-2xl font-bold mb-6 text-red-500">Preview</h2>
+                        <div id="previewContainer" class="flex justify-center">
+                            <img id="previewImage" class="preview-image hidden" alt="Preview">
+                            <video id="previewVideo" class="preview-image hidden" controls></video>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="bg-gray-900 rounded-xl shadow-2xl p-6 border border-red-800 hidden">
+                        <h2 class="text-2xl font-bold mb-6 text-red-500">Detection Results</h2>
+                        <div id="results" class="space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('file-upload');
+        const dropZone = document.querySelector('.border-dashed');
+        const selectFileBtn = document.getElementById('selectFile');
+        const startUploadBtn = document.getElementById('startUpload');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const previewVideo = document.getElementById('previewVideo');
+        const resultsSection = document.getElementById('resultsSection');
+        const results = document.getElementById('results');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        selectFileBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('border-red-600', 'bg-gray-700');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('border-red-600', 'bg-gray-700');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            handleFileSelect({ target: { files: dt.files } });
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                startUploadBtn.disabled = false;
+                startUploadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                uploadStatus.textContent = 'Ready to upload';
+
+                // Show preview
+                previewSection.classList.remove('hidden');
+                const isVideo = file.type.startsWith('video/');
+                
+                if (isVideo) {
+                    previewVideo.classList.remove('hidden');
+                    previewImage.classList.add('hidden');
+                    previewVideo.src = URL.createObjectURL(file);
+                } else {
+                    previewImage.classList.remove('hidden');
+                    previewVideo.classList.add('hidden');
+                    previewImage.src = URL.createObjectURL(file);
+                }
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        startUploadBtn.addEventListener('click', async () => {
+            const formData = new FormData(form);
+            uploadStatus.textContent = 'Processing...';
+            startUploadBtn.disabled = true;
+            startUploadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Upload failed');
+
+                const data = await response.json();
+                uploadStatus.textContent = 'Complete';
+                resultsSection.classList.remove('hidden');
+                
+                // Update detection stats
+                document.getElementById('detectionCount').textContent = data.detections.length;
+                if (data.detections.length > 0) {
+                    const avgConf = data.detections.reduce((acc, det) => acc + det.confidence, 0) / data.detections.length;
+                    document.getElementById('avgConfidence').textContent = `${(avgConf * 100).toFixed(1)}%`;
+                }
+
+                // Display results
+                results.innerHTML = data.detections.map((det, i) => `
+                    <div class="result-container">
+                        <p class="text-red-400 font-medium">Detection ${i + 1}</p>
+                        <p class="text-red-500">Confidence: ${(det.confidence * 100).toFixed(1)}%</p>
+                        ${det.bbox ? `
+                            <p class="text-red-500">Location: (${det.bbox[0]}, ${det.bbox[1]})</p>
+                            <p class="text-red-500">Size: ${det.bbox[2]-det.bbox[0]}x${det.bbox[3]-det.bbox[1]}px</p>
+                        ` : ''}
+                        <p class="text-red-500">Time: ${new Date(det.timestamp).toLocaleTimeString()}</p>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error:', error);
+                uploadStatus.textContent = 'Failed';
+                startUploadBtn.disabled = false;
+                startUploadBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    </script>
+</body>
+</html>

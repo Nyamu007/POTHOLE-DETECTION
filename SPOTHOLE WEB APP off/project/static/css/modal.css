@@ -1,0 +1,44 @@
+/* Modal styles */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1f2937;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    display: none;
+    width: 80vw;
+    max-width: 1000px;
+    border: 2px solid #8B4513;
+}
+
+.modal video {
+    width: 100%;
+    border-radius: 0.375rem;
+    background-color: black;
+}
+
+.close-btn {
+    position: absolute;
+    top: -0.75rem;
+    right: -0.75rem;
+    background-color: #8B4513;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn:hover {
+    background-color: #A0522D;
+}

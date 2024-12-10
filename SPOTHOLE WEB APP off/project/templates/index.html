@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700,800,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .custom-button {
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            background-color: #8B4513;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .custom-button:hover {
+            background-color: #A0522D;
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .spothole-title {
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1f2937;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 1000;
+            display: none;
+            width: 80vw;
+            max-width: 1000px;
+            border: 2px solid #8B4513;
+        }
+        .modal img {
+            width: 100%;
+            border-radius: 0.375rem;
+            background-color: black;
+        }
+        .close-btn {
+            position: absolute;
+            top: -0.75rem;
+            right: -0.75rem;
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .close-btn:hover {
+            background-color: #A0522D;
+        }
+    </style>
+</head>
+<body class="bg-black">
+    <div class="min-h-screen flex">
+        <!-- Left sidebar -->
+        <div class="w-80 bg-gray-900 text-red-500">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold mb-8 text-red-500">Controls Panel</h2>
+                
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">API Endpoints</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <div class="mb-3">
+                            <p class="text-sm mb-1">Get Coordinates:</p>
+                            <code class="api-endpoint block text-xs bg-gray-900 p-2 rounded">/api/coordinates</code>
+                        </div>
+                        <div>
+                            <p class="text-sm mb-1">Video Feed:</p>
+                            <code class="api-endpoint block text-xs bg-gray-900 p-2 rounded">/video_feed</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">Performance Metrics</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg">FPS: <span id="fpsCounter" class="font-mono text-red-500">0</span></p>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">GPS Location</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg mb-2">Lat: <span id="latitude" class="font-mono text-red-500">--</span></p>
+                        <p class="text-lg">Long: <span id="longitude" class="font-mono text-red-500">--</span></p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <button id="toggleWebcam" class="custom-button w-full">Start Webcam</button>
+                    <button id="toggleModalWebcam" class="custom-button w-full hidden">Open Webcam in Modal</button>
+                    <button id="downloadLogs" class="custom-button w-full">Download Logs</button>
+                    <button id="showCoordinates" class="custom-button w-full">Show Coordinates</button>
+                </div>
+
+                <div class="mt-8">
+                    <h3 class="text-sm font-semibold text-red-400 mb-3">Detection Statistics</h3>
+                    <div class="bg-gray-800 rounded-lg p-4 border border-red-800">
+                        <p class="text-lg mb-2">Detected: <span id="detectionCount" class="font-mono text-red-500">0</span></p>
+                        <p class="text-lg">Session: <span id="sessionTime" class="font-mono text-red-500">00:00:00</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex-1 bg-black">
+            <nav class="bg-black border-b border-red-800 text-red-500 p-6">
+                <div class="container mx-auto flex justify-between items-center">
+                    <div class="flex items-center">
+                        <h1 class="text-4xl spothole-title">SPOTHOLE</h1>
+                        <p class="text-sm ml-4 text-red-400">by Nyamu</p>
+                    </div>
+                    <div class="space-x-4">
+                        <a href="/" class="custom-button">Live Feed</a>
+                        <a href="/upload" class="custom-button">Upload</a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container mx-auto p-6">
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="bg-gray-900 rounded-xl shadow-2xl p-6 border border-red-800">
+                        <h2 class="text-2xl font-bold mb-6 text-red-500">Live Detection Feed</h2>
+                        <div id="videoContainer" class="relative aspect-video bg-black rounded-lg overflow-hidden border border-red-800">
+                            <img id="video-feed" class="absolute inset-0 w-full h-full object-contain" alt="Video Feed">
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 border border-red-800">
+                        <p class="text-red-400 text-lg leading-relaxed font-medium">
+                            <span class="text-2xl font-bold block mb-4 spothole-title">SPOTHOLE: Advanced Pothole Detection System</span>
+                            Welcome to our cutting-edge AI-powered road monitoring solution. This sophisticated system employs state-of-the-art computer vision algorithms to identify and track road surface anomalies in real-time. By processing live video feeds, SPOTHOLE provides precise location data and comprehensive severity assessments, making it an invaluable tool for road maintenance teams and urban infrastructure planning.
+                        </p>
+                    </div>
+
+                    <div id="coordinatesPanel" class="bg-gray-900 rounded-xl shadow-2xl p-6 border border-red-800 hidden">
+                        <h2 class="text-2xl font-bold mb-6 text-red-500">Detection Coordinates</h2>
+                        <div id="coordinates" class="h-[400px] overflow-y-auto space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webcam Modal -->
+    <div id="webcamModal" class="modal">
+        <button id="closeModal" class="close-btn">×</button>
+        <img id="modal-video-feed" class="w-full h-auto" alt="Modal Video Feed">
+    </div>
+
+    <script src="{{ url_for('static', filename='js/webcam.js') }}"></script>
+</body>
+</html>
